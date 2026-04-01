@@ -1,0 +1,47 @@
+import streamlit as st
+from groq import Groq
+
+# 1. Page Styling (The "Modern" Look)
+st.set_page_config(page_title="ANON AI", page_icon="👤", layout="centered")
+
+st.markdown("""
+    <style>
+    .stApp { background-color: #111111; color: #ececec; }
+    .stChatInput { bottom: 20px !important; }
+    .stChatMessage { border-radius: 10px; border: 1px solid #333; margin-bottom: 10px; }
+    </style>
+    """, unsafe_allow_html=True)
+
+# 2. Connect to Groq
+# We use 'st.secrets' so your key is never visible to the public
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# 3. Header
+st.title("👤 ANON")
+st.caption("Advanced AI Assistant | Powered by Groq| created by LONER")
+
+# 4. Display Chat
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# 5. Input Area
+if prompt := st.chat_input("Ask ANON anything..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {"role": "system", "content": "You are ANON, a highly intelligent and sleek AI."},
+                *st.session_state.messages
+            ]
+        )
+        answer = response.choices[0].message.content
+        st.markdown(answer)
+        st.session_state.messages.append({"role": "assistant", "content": answer})
